@@ -91,3 +91,24 @@ revisaría mejor las relaciones entre las clases antes de empezar a
 programar. Creo que con la práctica voy a poder hacerlo de una manera
 más ordenada y rápida.
 
+
+---
+
+## Correcciones de la reentrega
+
+**1. Tipo de evento en Movimiento**
+Antes el tipo de evento era un texto ("RECIBIDO", "DESPACHADO" o "ENTREGADO").
+Ahora es un `enum`, como vimos el cuatrimestre pasado. Así no se puede escribir
+mal ni poner un evento que no existe.
+
+**2. Las preguntas ahora son funciones**
+Antes, en `agregarPaquete`, guardaba las preguntas en variables (`hayLugar` y
+`todaviaNoSalio`). Ahora cada pregunta es una función privada. Así se puede usar
+en cualquier parte de la clase sin repetir el código. Hice lo mismo con
+`puedeDespacharse` y `puedeViajar`.
+
+**3. Saqué el atributo `sucursalDondeEstoyAhora`**
+Ya no guardo en una variable en qué sucursal está el envío. Ahora lo averiguo
+mirando el último movimiento del historial: si fue "recibido", el envío está en
+esa sucursal; si fue "despachado", está viajando. Así no tengo que usar `null`
+ni acordarme de actualizar la variable.
