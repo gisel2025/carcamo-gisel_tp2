@@ -98,7 +98,7 @@ más ordenada y rápida.
 
 **1. Tipo de evento en Movimiento**
 Antes el tipo de evento era un texto ("RECIBIDO", "DESPACHADO" o "ENTREGADO").
-Ahora es un `enum`, como vimos el cuatrimestre pasado. Así no se puede escribir
+Ahora es un `enum`. Así no se puede escribir
 mal ni poner un evento que no existe.
 
 **2. Las preguntas ahora son funciones**
