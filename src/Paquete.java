@@ -57,8 +57,7 @@ public class Paquete {
 
     // El paquete arranca su viaje.
     public void pasarAEnViaje() {
-        boolean puedeViajar = (estado == Estado.EN_PREPARACION || estado == Estado.RECIBIDO);
-        if (!puedeViajar) {
+        if (!puedeViajar()) {
             throw new IllegalStateException(
                 "El paquete " + id + " no puede iniciar viaje, su estado es " + estado);
         }
@@ -72,6 +71,14 @@ public class Paquete {
                 "El paquete " + id + " no puede entregarse, su estado es " + estado);
         }
         estado = Estado.ENTREGADO;
+    }
+
+    // --------------------------------------------------------------
+    // Validaciones privadas: se usan dentro de la clase cuando hacen falta.
+    // --------------------------------------------------------------
+
+    private boolean puedeViajar() {
+        return estado == Estado.EN_PREPARACION || estado == Estado.RECIBIDO;
     }
 
     @Override

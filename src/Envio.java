@@ -27,7 +27,8 @@ public abstract class Envio {
     private List<Paquete> paquetes;
     private List<Movimiento> historial;
     private Estado estado;
-    private Sucursal sucursalDondeEstoyAhora; // null = estoy viajando entre sucursales
+    // Ya no guardo "en qué sucursal estoy" en un atributo: lo saco
+    // del último movimiento del historial (ver estaEnAlgunaSucursal()).
 
     protected Envio(int id, Cliente cliente) {
         if (cliente == null) {
@@ -67,10 +68,7 @@ public abstract class Envio {
     // Agregar un paquete al envío. Solo se puede antes de despacharlo
     // y hasta un máximo de 3.
     public void agregarPaquete(Paquete paquete) {
-        boolean hayLugar = paquetes.size() < MAXIMO_DE_PAQUETES;
-        boolean todaviaNoSalio = (estado == Estado.REGISTRADO);
-
-        if (!hayLugar || !todaviaNoSalio) {
+        if (!hayLugar() || !todaviaNoSalio()) {
             throw new IllegalStateException(
                 "No se puede agregar el paquete al envío " + id +
                 " (máximo " + MAXIMO_DE_PAQUETES + " paquetes, y solo antes de despacharlo)");
@@ -90,13 +88,11 @@ public abstract class Envio {
         if (paquetes.isEmpty()) {
             throw new IllegalStateException("El envío " + id + " no tiene paquetes cargados");
         }
-        if (sucursalDondeEstoyAhora != null) {
+        if (estaEnAlgunaSucursal()) {
             throw new IllegalStateException(
-                "El envío " + id + " ya está en " + sucursalDondeEstoyAhora.getNombre() +
+                "El envío " + id + " ya está en " + sucursalDelUltimoMovimiento().getNombre() +
                 ", primero hay que despacharlo");
         }
-
-        sucursalDondeEstoyAhora = sucursal;
 
         // La primera vez que llega a una sucursal, pasa a "en preparación"
         // y sus paquetes también.
@@ -107,16 +103,15 @@ public abstract class Envio {
             }
         }
 
-        historial.add(new Movimiento(sucursal, "RECIBIDO"));
+        historial.add(new Movimiento(sucursal, Movimiento.TipoDeEvento.RECIBIDO));
     }
 
     void serDespachadoDesde(Sucursal sucursal) {
-        boolean puedeDespacharse = (estado == Estado.EN_PREPARACION || estado == Estado.EN_VIAJE);
-        if (!puedeDespacharse) {
+        if (!puedeDespacharse()) {
             throw new IllegalStateException(
                 "El envío " + id + " no se puede despachar, su estado es " + estado);
         }
-        if (sucursalDondeEstoyAhora != sucursal) {
+        if (!estaEn(sucursal)) {
             throw new IllegalStateException(
                 "El envío " + id + " no está en " + sucursal.getNombre());
         }
@@ -131,8 +126,7 @@ public abstract class Envio {
         }
         estado = Estado.EN_VIAJE;
 
-        historial.add(new Movimiento(sucursal, "DESPACHADO"));
-        sucursalDondeEstoyAhora = null; // ahora está "en el camino"
+        historial.add(new Movimiento(sucursal, Movimiento.TipoDeEvento.DESPACHADO));
     }
 
     // Entrega final: no pasa en una sucursal, sino en el destino del cliente.
@@ -145,7 +139,7 @@ public abstract class Envio {
             p.pasarAEntregado();
         }
         estado = Estado.ENTREGADO;
-        historial.add(new Movimiento(null, "ENTREGADO"));
+        historial.add(new Movimiento(null, Movimiento.TipoDeEvento.ENTREGADO));
     }
 
     // --------------------------------------------------------------
@@ -163,7 +157,7 @@ public abstract class Envio {
     public List<String> sucursalesPorLasQuePaso() {
         List<String> nombres = new ArrayList<>();
         for (Movimiento m : historial) {
-            if (m.getSucursal() != null && m.getTipoDeEvento().equals("RECIBIDO")) {
+            if (m.getSucursal() != null && m.getTipoDeEvento() == Movimiento.TipoDeEvento.RECIBIDO) {
                 nombres.add(m.getSucursal().getNombre());
             }
         }
@@ -175,6 +169,38 @@ public abstract class Envio {
             return null;
         }
         return historial.get(historial.size() - 1);
+    }
+
+    // --------------------------------------------------------------
+    // Validaciones privadas: cada pregunta es una función, así se puede
+    // reutilizar en cualquier parte de la clase sin repetir la condición.
+    // --------------------------------------------------------------
+
+    private boolean hayLugar() {
+        return paquetes.size() < MAXIMO_DE_PAQUETES;
+    }
+
+    private boolean todaviaNoSalio() {
+        return estado == Estado.REGISTRADO;
+    }
+
+    private boolean puedeDespacharse() {
+        return estado == Estado.EN_PREPARACION || estado == Estado.EN_VIAJE;
+    }
+
+    // El envío está en una sucursal si lo último que le pasó fue
+    // ser RECIBIDO. Si lo último fue DESPACHADO, está viajando.
+    private boolean estaEnAlgunaSucursal() {
+        Movimiento ultimo = ultimoMovimiento();
+        return ultimo != null && ultimo.getTipoDeEvento() == Movimiento.TipoDeEvento.RECIBIDO;
+    }
+
+    private boolean estaEn(Sucursal sucursal) {
+        return estaEnAlgunaSucursal() && sucursalDelUltimoMovimiento() == sucursal;
+    }
+
+    private Sucursal sucursalDelUltimoMovimiento() {
+        return ultimoMovimiento().getSucursal();
     }
 
     // Cada subclase (Estándar, Express, Internacional) decide cómo

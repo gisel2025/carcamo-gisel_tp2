@@ -7,11 +7,20 @@ import java.time.LocalDateTime;
 
 public class Movimiento {
 
+    // Los tipos de evento posibles. Con un enum en vez de un String,
+    // no se puede escribir mal el evento ("RECIBIOD") ni inventar uno
+    // que no existe: el compilador lo controla.
+    public enum TipoDeEvento {
+        RECIBIDO,
+        DESPACHADO,
+        ENTREGADO
+    }
+
     private LocalDateTime fecha;
     private Sucursal sucursal; // puede quedar null si es la entrega final
-    private String tipoDeEvento; // "RECIBIDO", "DESPACHADO" o "ENTREGADO"
+    private TipoDeEvento tipoDeEvento;
 
-    public Movimiento(Sucursal sucursal, String tipoDeEvento) {
+    public Movimiento(Sucursal sucursal, TipoDeEvento tipoDeEvento) {
         this.fecha = LocalDateTime.now();
         this.sucursal = sucursal;
         this.tipoDeEvento = tipoDeEvento;
@@ -25,7 +34,7 @@ public class Movimiento {
         return sucursal;
     }
 
-    public String getTipoDeEvento() {
+    public TipoDeEvento getTipoDeEvento() {
         return tipoDeEvento;
     }
 
