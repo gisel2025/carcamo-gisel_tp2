@@ -4,6 +4,7 @@
 // y qué tipo de evento fue.
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class Movimiento {
 
@@ -38,9 +39,25 @@ public class Movimiento {
         return tipoDeEvento;
     }
 
+    // MEJORA DE USABILIDAD: la fecha se muestra como la lee una persona
+    // (día/mes/año hora:minutos) y el evento con palabras comunes.
+    private static final DateTimeFormatter FORMATO_FECHA =
+        DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
+    private String eventoEnPalabras() {
+        switch (tipoDeEvento) {
+            case RECIBIDO:   return "Recibido en";
+            case DESPACHADO: return "Despachado desde";
+            default:         return "Entregado al cliente";
+        }
+    }
+
     @Override
     public String toString() {
-        String lugar = (sucursal != null) ? sucursal.getNombre() : "destino final";
-        return "[" + fecha + "] " + tipoDeEvento + " en " + lugar;
+        String texto = fecha.format(FORMATO_FECHA) + " - " + eventoEnPalabras();
+        if (sucursal != null) {
+            texto += " " + sucursal.getNombre();
+        }
+        return texto;
     }
 }
