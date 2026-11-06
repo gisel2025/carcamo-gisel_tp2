@@ -68,7 +68,12 @@ public class App {
         System.out.println("Costo total de todos los envíos: $" + costoTotal);
         System.out.println("Envíos de " + juan.getNombre() + ": " + juan.cantidadDeEnvios());
 
-        // 8) Pruebas de que las validaciones funcionan (operaciones inválidas)
+        // 8) MEJORA DE USABILIDAD: buscar un envío por su código
+        System.out.println("\n=== Buscar un envío por su código ===");
+        buscarYMostrar(todosLosEnvios, 1);
+        buscarYMostrar(todosLosEnvios, 99);
+
+        // 9) Pruebas de que las validaciones funcionan (operaciones inválidas)
         System.out.println("\n=== Probando que el sistema rechace operaciones inválidas ===");
 
         try {
@@ -99,6 +104,29 @@ public class App {
             bahiaBlanca.recibirEnvio(otroEnvio); // recibir en otra sucursal sin despachar antes
         } catch (IllegalStateException error) {
             System.out.println("Error esperado (recibir sin despachar): " + error.getMessage());
+        }
+    }
+
+    // Busca un envío por su código (id). Si no existe, devuelve null.
+    private static Envio buscarEnvio(List<Envio> envios, int codigo) {
+        for (Envio e : envios) {
+            if (e.getId() == codigo) {
+                return e;
+            }
+        }
+        return null;
+    }
+
+    // Muestra el resultado de la búsqueda con un mensaje claro.
+    private static void buscarYMostrar(List<Envio> envios, int codigo) {
+        System.out.println("Código buscado: " + codigo);
+        Envio encontrado = buscarEnvio(envios, codigo);
+        if (encontrado == null) {
+            System.out.println("  No se encontró ningún envío con el código " + codigo +
+                               ". Revise que el número esté bien escrito.");
+        } else {
+            System.out.println("  " + encontrado);
+            encontrado.mostrarHistorial();
         }
     }
 }
